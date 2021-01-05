@@ -2275,6 +2275,9 @@ void SurfaceFlinger::postComposition()
         layer->releasePendingBuffer(dequeueReadyTime);
     }
 
+    //RK support: to set DispSync mRefreshSkipCount by property.
+    mScheduler->getPrimaryDispSync().updateRefreshSkipCountByProperty();
+
     const auto* display = ON_MAIN_THREAD(getDefaultDisplayDeviceLocked()).get();
 
     getBE().mGlCompositionDoneTimeline.updateSignalTimes();
@@ -2333,6 +2336,7 @@ void SurfaceFlinger::postComposition()
             mScheduler->enableHardwareVsync();
         }
     }
+
 
     if (mAnimCompositionPending) {
         mAnimCompositionPending = false;
