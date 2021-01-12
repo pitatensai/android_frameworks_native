@@ -937,6 +937,8 @@ std::optional<base::unique_fd> Output::composeSurfaces(
                        return &settings;
                    });
 
+    clientCompositionDisplay.display_id = (int)getDisplayId()->value;
+
     const nsecs_t renderEngineStart = systemTime();
     status_t status =
             renderEngine.drawLayers(clientCompositionDisplay, clientCompositionLayerPointers,
