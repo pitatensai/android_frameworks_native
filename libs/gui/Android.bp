@@ -51,6 +51,18 @@ cc_library_headers {
     ],
 }
 
+cc_library_headers {
+    name: "libgui_window_info_headers",
+    vendor_available: true,
+    static_libs: [
+        "libgui_window_info_static",
+    ],
+
+    export_static_lib_headers: [
+        "libgui_window_info_static",
+    ],
+}
+
 // AIDL files that should be exposed to java
 filegroup {
     name: "guiconstants_aidl",
