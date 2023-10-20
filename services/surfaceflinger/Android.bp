@@ -121,7 +121,6 @@ cc_defaults {
     },
 }
 
-
 bootstrap_go_package {
     name: "soong-libsurfaceflinger",
     pkgPath: "android/soong/libsurfaceflinger",
@@ -285,7 +284,6 @@ subdirs = [
     "layerproto",
     "tests",
 ]
-
 
 cc_library_shared {
     name: "libSurfaceFlingerProp",

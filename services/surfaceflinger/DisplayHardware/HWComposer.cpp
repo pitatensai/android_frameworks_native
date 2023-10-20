@@ -497,7 +497,7 @@ status_t HWComposer::getDeviceCompositionChanges(
 
     uint32_t numTypes = 0;
     uint32_t numRequests = 0;
-    static int framecnt = 0;
+
     hal::Error error = hal::Error::NONE;
 
     // First try to skip validate altogether when there is no client
@@ -540,13 +540,7 @@ status_t HWComposer::getDeviceCompositionChanges(
     layerRequests.reserve(numRequests);
     error = hwcDisplay->getRequests(&displayRequests, &layerRequests);
     RETURN_IF_HWC_ERROR_FOR("getRequests", error, displayId, BAD_INDEX);
-    displayData.hasClientafbc = false;
-    framecnt ++;
 
-    if (0 == framecnt%2)
-    {
-        displayData.hasClientafbc = true;
-    }
     DeviceRequestedChanges::ClientTargetProperty clientTargetProperty;
     error = hwcDisplay->getClientTargetProperty(&clientTargetProperty);
 
@@ -558,16 +552,7 @@ status_t HWComposer::getDeviceCompositionChanges(
 
     return NO_ERROR;
 }
-bool HWComposer::hasClientAFBC(const std::optional<DisplayId>& displayId) const {
-    if (!displayId) {
-        // Displays without a corresponding HWC display are always composed by
-        // the client
-        return true;
-    }
 
-    RETURN_IF_INVALID_DISPLAY(*displayId, true);
-    return mDisplayData.at(*displayId).hasClientafbc;
-}
 sp<Fence> HWComposer::getPresentFence(DisplayId displayId) const {
     RETURN_IF_INVALID_DISPLAY(displayId, Fence::NO_FENCE);
     return mDisplayData.at(displayId).lastPresentFence;
@@ -909,11 +894,6 @@ bool HWComposer::shouldIgnoreHotplugConnect(hal::HWDisplayId hwcDisplayId,
         return true;
     }
 
-    if (!mHasMultiDisplaySupport && mInternalHwcDisplayId && mExternalHwcDisplayId) {
-        ALOGE("Ignoring connection of tertiary display %" PRIu64, hwcDisplayId);
-        return true;
-    }
-
     return false;
 }
 
@@ -949,7 +929,9 @@ std::optional<DisplayIdentificationInfo> HWComposer::onHotplugConnect(
             } else {
                 ALOGW_IF(hasDisplayIdentificationData,
                          "Ignoring identification data for display %" PRIu64, hwcDisplayId);
-                port = isPrimary ? LEGACY_DISPLAY_TYPE_PRIMARY : LEGACY_DISPLAY_TYPE_EXTERNAL;
+                ALOGW(
+                         "Ignoring identification data for display %" PRIu64, hwcDisplayId);
+                port = isPrimary ? LEGACY_DISPLAY_TYPE_PRIMARY : hwcDisplayId;
             }
 
             return DisplayIdentificationInfo{.id = getFallbackDisplayId(port),

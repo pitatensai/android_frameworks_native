@@ -334,18 +334,14 @@ SurfaceFlinger::SurfaceFlinger(Factory& factory) : SurfaceFlinger(factory, SkipI
     // Vr flinger is only enabled on Daydream ready devices.
     useVrFlinger = use_vr_flinger(false);
 
-    #if DYNAMIC_AFBC_TARGET
-    maxFrameBufferAcquiredBuffers = max_frame_buffer_acquired_buffers(6);
-    #else
     maxFrameBufferAcquiredBuffers = max_frame_buffer_acquired_buffers(3);
-    #endif
 
     maxGraphicsWidth = std::max(max_graphics_width(0), 0);
     maxGraphicsHeight = std::max(max_graphics_height(0), 0);
 
     hasWideColorDisplay = has_wide_color_display(false);
 
-    useColorManagement = use_color_management(false);
+    useColorManagement = use_color_management(true);
 
     mDefaultCompositionDataspace =
             static_cast<ui::Dataspace>(default_composition_dataspace(Dataspace::V0_SRGB));
@@ -2117,13 +2113,6 @@ void SurfaceFlinger::onMessageRefresh() {
         refreshArgs.devOptFlashDirtyRegionsDelay =
                 std::chrono::milliseconds(mDebugRegion > 1 ? mDebugRegion : 0);
     }
-    const auto* dpy = ON_MAIN_THREAD(getDefaultDisplayDeviceLocked()).get();
-
-    if(dpy) {
-        refreshArgs.useAfbcTargetComposition =  getHwComposer().hasClientAFBC(*dpy->getId());
-    } else {
-        refreshArgs.useAfbcTargetComposition =  false;
-    }
 
     mGeometryInvalid = false;
 
@@ -2166,7 +2155,6 @@ void SurfaceFlinger::onMessageRefresh() {
     mVSyncModulator->onRefreshed(mHadClientComposition || mReusedClientComposition);
 
     mLayersWithQueuedFrames.clear();
-
 #if RK_FPS
     if(gsFrameCcount++%300==0) {
         gsFrameCcount = 1;
@@ -2771,6 +2759,11 @@ void SurfaceFlinger::processDisplayChanged(const wp<IBinder>& displayToken,
         if (currentState.layerStack != drawingState.layerStack) {
             display->setLayerStack(currentState.layerStack);
         }
+
+        if (currentState.width != drawingState.width ||
+            currentState.height != drawingState.height) {
+            display->setDisplaySize(currentState.width, currentState.height);
+        }
         if ((currentState.orientation != drawingState.orientation) ||
             (currentState.viewport != drawingState.viewport) ||
             (currentState.frame != drawingState.frame)) {
@@ -2779,7 +2772,6 @@ void SurfaceFlinger::processDisplayChanged(const wp<IBinder>& displayToken,
         }
         if (currentState.width != drawingState.width ||
             currentState.height != drawingState.height) {
-            display->setDisplaySize(currentState.width, currentState.height);
 
             if (display->isPrimary()) {
                 mScheduler->onPrimaryDisplayAreaChanged(currentState.width * currentState.height);

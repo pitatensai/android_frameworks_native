@@ -1,6 +1,6 @@
 cc_defaults {
     name: "libcompositionengine_defaults",
-    defaults: ["surfaceflinger_defaults"],
+    defaults: ["surfaceflinger_defaults","cc_libcompositionengine_defaults"],
     cflags: [
         "-DLOG_TAG=\"CompositionEngine\"",
         "-DATRACE_TAG=ATRACE_TAG_GRAPHICS",
@@ -45,7 +45,7 @@ cc_defaults {
 
 cc_library {
     name: "libcompositionengine",
-    defaults: ["libcompositionengine_defaults","cc_libcompositionengine_defaults"],
+    defaults: ["libcompositionengine_defaults"],
     srcs: [
         "src/ClientCompositionRequestCache.cpp",
         "src/CompositionEngine.cpp",
